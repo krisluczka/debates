@@ -8,8 +8,9 @@ import { useContext, useState } from "react";
 export default function PageDebate() {
   const debate = useContext(DebateContext);
 
-  const [running, setRunning] = useState<boolean>(false);
   const [stage, setStage] = useState<number>(0);
+  const [running, setRunning] = useState<boolean>(false);
+  const [advocem, setAdvocem] = useState<boolean>(false);
 
   const dot = `
     h-3 w-3 rounded-full border-2 border-zinc-500
@@ -18,7 +19,8 @@ export default function PageDebate() {
   const dotactive = "border-zinc-400";
   const button = `
     bg-zinc-700 p-2 rounded hover:bg-zinc-600 border border-transparent
-    hover:border-zinc-400 disabled:cursor-not-allowed
+    hover:border-zinc-400
+    disabled:cursor-not-allowed disabled:opacity-30 disabled:border-transparent
   `;
 
   const stageText = useLang(
@@ -43,35 +45,37 @@ export default function PageDebate() {
   const stageBtnText = useLang(
     stage == 0 && !running
       ? "STAGE_0_0_BTN"
-      : stage == 0 && running
+      : stage == 0 && running && !advocem
       ? "STAGE_0_1_BTN"
       : stage == 1 && !running
       ? "STAGE_1_0_BTN"
-      : stage == 1 && running
+      : stage == 1 && running && !advocem
       ? "STAGE_1_1_BTN"
       : stage == 2 && !running
       ? "STAGE_2_0_BTN"
-      : stage == 2 && running
+      : stage == 2 && running && !advocem
       ? "STAGE_2_1_BTN"
       : stage == 3 && !running
       ? "STAGE_3_0_BTN"
-      : stage == 3 && running
+      : stage == 3 && running && !advocem
       ? "STAGE_3_1_BTN"
       : stage == 4 && !running
       ? "STAGE_4_0_BTN"
-      : stage == 4 && running
+      : stage == 4 && running && !advocem
       ? "STAGE_4_1_BTN"
       : stage == 5 && !running
       ? "STAGE_5_0_BTN"
-      : stage == 5 && running
+      : stage == 5 && running && !advocem
       ? "STAGE_5_1_BTN"
       : stage == 6 && !running
       ? "STAGE_6_0_BTN"
-      : stage == 6 && running
+      : stage == 6 && running && !advocem
       ? "STAGE_6_1_BTN"
       : stage == 7 && !running
       ? "STAGE_7_0_BTN"
-      : "STAGE_7_1_BTN"
+      : stage == 7 && running && !advocem
+      ? "STAGE_7_1_BTN"
+      : "STAGE_7_0_BTN"
   );
 
   const oxfordDebate = useLang("oxfordDebate");
@@ -160,22 +164,30 @@ export default function PageDebate() {
           </div>
         </div>
       </div>
-      <p className="text-center text-zinc-400">{stageText}</p>
+      <p className="text-center text-zinc-400">
+        {advocem ? "AD VOCEM" : stageText}
+      </p>
       <div className="flex flex-row py-4">
-        <div className="w-1/2 flex flex-row justify-center">
-          <DebateClock
-            running={running && [0, 2, 4, 6].includes(stage)}
-            dimmed={running && [1, 3, 5, 7].includes(stage)}
-            stage={stage}
-          />
-        </div>
-        <div className="w-1/2 flex flex-row justify-center">
-          <DebateClock
-            running={running && [1, 3, 5, 7].includes(stage)}
-            dimmed={running && [0, 2, 4, 6].includes(stage)}
-            stage={stage}
-          />
-        </div>
+        {!advocem ? (
+          <>
+            <div className="w-1/2 flex flex-row justify-center">
+              <DebateClock
+                running={running && !advocem && [0, 2, 4, 6].includes(stage)}
+                dimmed={running && [1, 3, 5, 7].includes(stage)}
+              />
+            </div>
+            <div className="w-1/2 flex flex-row justify-center">
+              <DebateClock
+                running={running && !advocem && [1, 3, 5, 7].includes(stage)}
+                dimmed={running && [0, 2, 4, 6].includes(stage)}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="w-full flex flex-row justify-center">
+            <DebateClock running={advocem} adVocemClock />
+          </div>
+        )}
       </div>
       <div className={stage == 8 ? "hidden" : ""}>
         <div className="max-w-md mx-auto flex flex-row justify-center gap-2 pt-32">
@@ -190,12 +202,23 @@ export default function PageDebate() {
                 setRunning(true);
               }
             }}
+            disabled={advocem}
           >
             {stageBtnText}
           </button>
-          <button className={button} onClick={() => {}}>
-            Ad Vocem
-          </button>
+          {debate?.data.adVocemTime ? (
+            <button
+              className={button}
+              disabled={running && !advocem}
+              onClick={() => {
+                setAdvocem(!advocem);
+              }}
+            >
+              Ad Vocem
+            </button>
+          ) : (
+            ""
+          )}
         </div>
       </div>
       <div
